@@ -1,0 +1,17 @@
+Cython==0.29.15
+cytoolz==0.10.1
+dask==2.11.0
+Flask==1.1.1
+glob2==0.7
+GoogleTrans2020==4.0.2020.2
+h5py==2.10.0
+regex==2020.6.8
+scikit-image==0.16.2
+scikit-learn==0.22.1
+scipy==1.4.1
+seaborn==0.10.0
+spyder==4.0.1
+tqdm==4.42.1
+boto==2.49.0
+DateTime==4.3
+python3==3
