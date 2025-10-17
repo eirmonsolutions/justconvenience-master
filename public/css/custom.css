@@ -523,11 +523,6 @@ header#header,
 	width: 100% !important;
 }
 
-.logo {
-	max-width: 150px;
-	padding-top: 6px;
-	margin: 0 80px !important;
-}
 
 .menu>ul>li.logo a {
 	padding: 0;
