@@ -1735,7 +1735,7 @@ border: 0;
 @media(max-width:1280px) {
 	.logo {
 		margin: 0 20px !important;
-		max-width: 110px;
+		/* max-width: 110px; */
 	}
 	.menu>ul>li a {
 		padding: 0 8px;
