@@ -14,7 +14,7 @@ class StoreController extends Controller
 {
     public function index(Request $request)
     {
-        $mapsApiKey = 'AIzaSyDMM_JgMxLgv-rCgNqWevWJxGEl0U8Y2CQ';
+        $mapsApiKey = 'AIzaSyB08HE9s_bGgFRKe3USU7vcbhLILefq0Rg';
         $radius = 5;
         $lat = $lng = '';
         $params = $request->all();
