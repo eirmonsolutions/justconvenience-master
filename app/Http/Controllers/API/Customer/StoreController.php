@@ -13,65 +13,29 @@ use App\User;
 class StoreController extends Controller
 {
     public function index(Request $request)
-    {
-        $mapsApiKey = 'AIzaSyDAMHOGEbJAHAW7m-aZrX1MOqzRLlSdEuQ';
-        $radius = 5;
-        $lat = $lng = '';
-        $params = $request->all();
+{
+    $params = $request->all();
 
-        if(isset($params['q']) && !empty($params['q']))
-        {
-            $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($params['q']) . "&key=" . $mapsApiKey;
-            
-            $result_string = @file_get_contents($url);
-            if($result_string)
-            {
-                // convert into readable format
-                $result = json_decode($result_string, true);
-                // print_r($result); die();
-                if($result && $result['results'])
-                {
-                    $commonVar = $result['results'][0]['geometry']['location'];
-                    if($commonVar)
-                    {
-                        // print_r($commonVar); die();
-                        $lat = $commonVar['lat'];
-                        $lng = $commonVar['lng'];
-                    }
-                    else
-                    {
-                        return response()->json(['status' => 0, 'message' => 'Something wrong while fetching location.'])->setStatusCode(200);
-                    }
-                }
-                else
-                {
-                    return response()->json(['status' => 0, 'message' => 'Something wrong with API Key.'])->setStatusCode(200);
-                }
-            }
-            else
-            {
-                return response()->json(['status' => 0, 'message' => 'Something wrong with API Key.'])->setStatusCode(200);
-            }
-        }
-        else if((isset($params['lat']) && !empty($params['lat'])) && (isset($params['lng']) && !empty($params['lng'])))
-        {
-            $lat = $params['lat']; // user's latitude
-            $lng = $params['lng']; // user's longitude
-        }
-
-        if(empty($lat) || empty($lng))
-        {
-            return response()->json(['status' => 0, 'message' => 'Unable to fetch location.'])->setStatusCode(200);
-        }
-
-        $stores = User::select('*', \DB::raw("3959* acos( cos( radians($lat) ) * cos( radians( latitudes ) ) * cos( radians( longitudes ) - radians($lng) ) + sin( radians($lat) ) * sin( radians( latitudes ) ) ) AS distance"))
-            ->where(['user_role' => 3, 'status' => 1, 'is_store_paid' => 1])
-            ->having('distance', '<=', $radius)
-            ->orderBy('distance', 'ASC')
-            ->paginate();
-
-        return response()->json(['status' => 1, 'message' => 'Store List.', 'data' => $stores])->setStatusCode(200);
+    if (!isset($params['q']) || empty($params['q'])) {
+        return response()->json(['status' => 0, 'message' => 'Please enter a zipcode.'], 200);
     }
+
+    $zipcode = $params['q'];
+
+    $stores = User::where([
+            'user_role' => 3,
+            'status' => 1,
+            'is_store_paid' => 1,
+        ])
+        ->where('zipcode', 'LIKE', "%{$zipcode}%")
+        ->paginate();
+
+    if ($stores->isEmpty()) {
+        return response()->json(['status' => 0, 'message' => 'No stores found for this zipcode.'], 200);
+    }
+
+    return response()->json(['status' => 1, 'message' => 'Store List.', 'data' => $stores], 200);
+}
 
     public function indexOld(Request $request)
     {

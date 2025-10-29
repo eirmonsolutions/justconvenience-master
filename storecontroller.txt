@@ -1,0 +1,24 @@
+    public function index(Request $request)
+{
+    $params = $request->all();
+
+    if (!isset($params['q']) || empty($params['q'])) {
+        return response()->json(['status' => 0, 'message' => 'Please enter a zipcode.'], 200);
+    }
+
+    $zipcode = $params['q'];
+
+    $stores = User::where([
+            'user_role' => 3,
+            'status' => 1,
+            'is_store_paid' => 1,
+        ])
+        ->where('zipcode', 'LIKE', "%{$zipcode}%")
+        ->paginate();
+
+    if ($stores->isEmpty()) {
+        return response()->json(['status' => 0, 'message' => 'No stores found for this zipcode.'], 200);
+    }
+
+    return response()->json(['status' => 1, 'message' => 'Store List.', 'data' => $stores], 200);
+}
