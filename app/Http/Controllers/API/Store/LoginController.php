@@ -38,10 +38,10 @@ class LoginController extends Controller
             $user = User::where(['email' => $params['email']])->first();
 
             // Check If Email is verified or not
-            if($user->is_store_paid == 0)
-            { 
-                return response()->json(['status' => 0, 'message' => 'Your membership amount is pending!'])->setStatusCode(200);
-            }
+            // if($user->is_store_paid == 0)
+            // { 
+            //     return response()->json(['status' => 0, 'message' => 'Your membership amount is pending!'])->setStatusCode(200);
+            // }
 
             if($user->status == 0)
             {

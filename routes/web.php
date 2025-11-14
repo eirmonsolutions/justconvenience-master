@@ -41,7 +41,7 @@ Route::group(['middleware' => ['SuperAdminUserType']], function () {
 	Route::post('save-user', 'UserController@saveUser')->name('save-user');
 	Route::get('delete-user/{id}', 'UserController@deleteUser')->name('delete-user');
 	Route::any('change-password/{id}', 'UserController@changePassword')->name('change-password');
-	Route::get('malls', 'MallDashoardController@index')->name('malls');
+	Route::get('malls', 'MallDashboardController@index')->name('malls');
 });
 
 Route::group(['middleware' => ['CommonUserType']], function ()

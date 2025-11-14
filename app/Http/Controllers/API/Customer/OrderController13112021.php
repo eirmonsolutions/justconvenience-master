@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API\Customer;
 
-include(app_path() . '\payments\gateway.php');
+include(app_path('payments/gateway.php'));
 
 use GlobalPayments\Api\Entities\Address;
 use GlobalPayments\Api\Entities\Enums\AddressType;

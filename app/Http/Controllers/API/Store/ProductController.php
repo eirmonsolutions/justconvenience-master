@@ -11,7 +11,8 @@ use Session;
 use App\Product;
 use App\Category;
 use App\subCategory;
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 class ProductController extends Controller
 {
     public function commonProducts(Request $request)
@@ -177,81 +178,176 @@ class ProductController extends Controller
         return response()->json(['status' => 1, 'message' => 'Disabled Store Products.', 'data' => $products])->setStatusCode(200);
     }
 
-    public function save(Request $request)
-    {
-        $user = $request->checkTokenExistance->user;
-        // create the validation rules ------------------------
+
+public function save(Request $request)
+{
+    $start = microtime(true);
+    $user = $request->checkTokenExistance->user;
+
+    Log::info('Product Save Started', [
+        'user_id' => $user->id,
+        'request_ip' => $request->ip(),
+        'params' => $request->except('featured_image'), // hide file
+    ]);
+
+    try {
+        // ------------------------------------------------------------------
+        // 1. VALIDATION RULES (dynamic for add/edit)
+        // ------------------------------------------------------------------
+        $isEdit = $request->filled('product_id');
         $rules = [
-                'name'   => 'required',
-                // 'bar_code'   => 'required|unique:products,bar_code,NULL,id,type,2,user_id,' . $user->id .',deleted_at,NULL',
-                'category_id'   => 'required',
-                'featured_image'   => 'required|mimes:jpeg,jpg,png,svg',
-                'price'   => 'required|min:0',
+            'name'          => 'required|string|max:255',
+            'category_id'   => 'required|exists:categories,id',
+            'price'         => 'required|numeric|min:0',
+            'subcategory_id'=> 'nullable',
+            'bar_code'      => 'nullable|string|max:100',
+            'is_offer'      => 'nullable|in:0,1',
+            'offer_description' => 'required_if:is_offer,1|string|max:500',
+            'offer_quantity'    => 'required_if:is_offer,1|integer|min:1',
+            'offer_price'       => 'required_if:is_offer,1|numeric|min:0',
         ];
 
+        // Image required only on create
+        if (!$isEdit) {
+       $rules['featured_image'] = 'required|image|mimes:jpeg,jpg,png,svg|max:2048';
+        } else {
+            $rules['featured_image'] = 'nullable|image|mimes:jpeg,jpg,png,svg|max:2048';
+        }
+
         $validator = Validator::make($request->all(), $rules);
-        
+
         if ($validator->fails()) {
-            return response()->json(['status' => 0, 'message' => $validator->errors()->first()])->setStatusCode(200);
+            Log::warning('Product Validation Failed', [
+                'errors' => $validator->errors()->toArray(),
+                'user_id' => $user->id,
+            ]);
+            return response()->json([
+                'status'  => 0,
+                'message' => $validator->errors()->first()
+            ], 200);
         }
 
-        $params = $request->post();
+        // ------------------------------------------------------------------
+        // 2. PREPARE DATA
+        // ------------------------------------------------------------------
+        $params = $request->all();
 
-        $product = new Product;
-        $product->name = $params['name'];
-        
-        if(isset($params['bar_code']) && !empty($params['bar_code']))
-        {
-            $product->bar_code = $params['bar_code'];
-        }
+        // Start DB transaction
+        return DB::transaction(function () use ($request, $user, $params, $isEdit, $start) {
+            try {
+                $product = $isEdit
+                    ? Product::where('id', $params['product_id'])
+                        ->where('user_id', $user->id)
+                        ->firstOrFail()
+                    : new Product();
 
-        $product->user_id = $user->id;
-        $product->type = 2;
-        $product->description = $params['description'];
-        $product->category_id = $params['category_id'];
-        $product->price = $params['price'];
-        $product->subcategory_id = (isset($params['subcategory_id']) && !empty($params['subcategory_id'])) ? $params['subcategory_id'] : 0;
+                // Basic fields
+                $product->name           = $params['name'];
+                $product->description    = $params['description'] ?? null;
+                $product->category_id    = $params['category_id'];
+                $product->subcategory_id = $params['subcategory_id'] ?? 0;
+                $product->price          = $params['price'];
+                $product->bar_code       = $params['bar_code'] ?? null;
+                $product->user_id        = $user->id;
+                $product->type           = 2;
 
-        if ($request->hasFile('featured_image')) {
-            $image = $request->file('featured_image');
-            $name = time() . '.' . $image->getClientOriginalExtension();
-            $destinationPath = public_path('/products');
-            $image->move($destinationPath, $name);
-            
-            $product->featured_image = 'public/products/' . $name;
-        }
+                // ------------------------------------------------------------------
+                // 3. HANDLE IMAGE
+                // ------------------------------------------------------------------
+                if ($request->hasFile('featured_image')) {
+                    /** @var UploadedFile $image */
+                    $image = $request->file('featured_image');
 
-        if(isset($params['is_offer']))
-        {
-            $product->is_offer = $params['is_offer'];
-            if(!empty($params['is_offer']))
-            {
-                if(isset($params['offer_description']) && !empty($params['offer_description']))
-                {
+                    Log::info('Uploading product image', [
+                        'original_name' => $image->getClientOriginalName(),
+                        'size' => $image->getSize(),
+                        'mime' => $image->getMimeType(),
+                    ]);
+
+                    // Delete old image if exists (edit mode)
+                    if ($isEdit && $product->featured_image && Storage::exists($product->featured_image)) {
+                        Storage::delete($product->featured_image);
+                        Log::info('Old image deleted', ['path' => $product->featured_image]);
+                    }
+
+                    $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                    $path = $image->storeAs('products', $filename, 'public');
+
+                    $product->featured_image = 'storage/products/' . $filename;
+
+                    Log::info('New image saved', ['path' => $product->featured_image]);
+                } elseif (!$isEdit) {
+                    // Should not reach here due to validation
+                    throw new \Exception('Featured image is required for new product.');
+                }
+
+                // ------------------------------------------------------------------
+                // 4. OFFER LOGIC (clean & safe)
+                // ------------------------------------------------------------------
+                $isOffer = isset($params['is_offer']) && $params['is_offer'] == 1;
+
+                $product->is_offer = $isOffer ? 1 : 0;
+
+                if ($isOffer) {
                     $product->offer_description = $params['offer_description'];
+                    $product->offer_quantity    = $params['offer_quantity'];
+                    $product->offer_price       = $params['offer_price'];
+                    Log::info('Offer applied to product', [
+                        'desc' => $product->offer_description,
+                        'qty'  => $product->offer_quantity,
+                        'price'=> $product->offer_price,
+                    ]);
+                } else {
+                    $product->offer_description = null;
+                    $product->offer_quantity    = null;
+                    $product->offer_price       = null;
                 }
 
-                if(isset($params['offer_quantity']) && !empty($params['offer_quantity']))
-                {
-                    $product->offer_quantity = $params['offer_quantity'];
-                }
+                // ------------------------------------------------------------------
+                // 5. SAVE
+                // ------------------------------------------------------------------
+                $product->save();
 
-                if(isset($params['offer_price']) && !empty($params['offer_price']))
-                {
-                    $product->offer_price = $params['offer_price'];
-                }
+                $duration = round((microtime(true) - $start) * 1000, 2);
+
+                Log::info('Product Saved Successfully', [
+                    'product_id' => $product->id,
+                    'is_edit'    => $isEdit,
+                    'duration_ms'=> $duration,
+                ]);
+
+                return response()->json([
+                    'status'  => 1,
+                    'message' => $isEdit
+                        ? 'Product updated successfully.'
+                        : 'Product created successfully.',
+                    'product_id' => $product->id
+                ], 200);
+
+            } catch (\Exception $e) {
+                Log::error('Product Save Failed in Transaction', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'user_id' => $user->id,
+                ]);
+
+                throw $e; // rollback
             }
-        }
+        });
 
-        if($product->save())
-        {
-            return response()->json(['status' => 1, 'message' => 'Product has created successfully.'])->setStatusCode(200);
-        }
-        else
-        {
-            return response()->json(['status' => 0, 'message' => 'Something went wrong.'])->setStatusCode(200);
-        }
+    } catch (\Exception $e) {
+        Log::critical('Product Save Critical Failure', [
+            'error' => $e->getMessage(),
+            'file'  => $e->getFile(),
+            'line'  => $e->getLine(),
+        ]);
+
+        return response()->json([
+            'status'  => 0,
+            'message' => 'Something went wrong. Please try again.'
+        ], 200);
     }
+}
 
     public function details(Request $request, $id)
     {
