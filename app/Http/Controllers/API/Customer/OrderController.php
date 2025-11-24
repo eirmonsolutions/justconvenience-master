@@ -224,132 +224,47 @@ class OrderController extends Controller
         }
     }
 
-    public function paymentTransaction(Request $request)
-    {
-        $rules = [
-            'store_id'   => 'required',
-            'amount'   => 'required',
-            'cardNumber'   => 'required',
-            'cardExpiryMonth'   => 'required',
-            'cardExpiryYear'   => 'required',
-            'cardCVV'   => 'required',
-            'customerName'   => 'required',
-            'customerEmail'   => 'required',
-            'customerAddress'   => 'required',
-            'orderRef'   => 'required',
-        ];
+   public function paymentTransaction(Request $request)
+{
+    $rules = [
+        'store_id'   => 'required',
+        'amount'   => 'required',
+        'customerName'   => 'required',
+        'customerEmail'   => 'required',
+        'customerAddress'   => 'required',
+        'orderRef'   => 'required',
+    ];
 
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
-            return response()->json(['status' => 0, 'message' => $validator->errors()->first()])->setStatusCode(200);
-        }
-
-        $params = $request->post();
-
-        $getStoreDetails = User::where('id', $params['store_id'])->where('status', 1)->first();
-        if(empty($getStoreDetails))
-        {
-            return response()->json(['status' => 0, 'message' => 'Store is unavailable.'])->setStatusCode(200);
-        }
-        else
-        {
-            if(empty($getStoreDetails->merchantID) || empty($getStoreDetails->merchantSecret))
-            {
-                return response()->json(['status' => 0, 'message' => 'Store payment details missing.'])->setStatusCode(200);
-            }
-        }
-
-        $CSGW = new \P3\SDK\Gateway;
-
-        $merchantID = $getStoreDetails->merchantID;
-        $key = $getStoreDetails->merchantSecret; // Should be $merchantSecret from the file gateway.php -> change if needed
-        $action = 'SALE';
-        $type = 1;
-        $countryCode = 826;
-        $currencyCode = 826;
-
-        // Pass our Credentials
-        $CSGW::$merchantID = $merchantID;
-        $CSGW::$merchantSecret = $key;
-
-        // Request
-        $req = array(
-            'merchantID'=> $merchantID, // Should be $merchantID from the file gateway.php -> change if needed
-            'action'=> $action,
-            'type'=> $type,
-            'countryCode'=> $countryCode,
-            'currencyCode'=> $currencyCode,
-            'amount'=> $params['amount'],
-            'cardNumber'=> $params['cardNumber'],
-            'cardExpiryMonth'=> $params['cardExpiryMonth'],
-            'cardExpiryYear'=> $params['cardExpiryYear'],
-            'cardCVV'=> $params['cardCVV'],
-            'customerName'=> $params['customerName'],
-            'customerEmail'=> $params['customerEmail'],
-            // 'customerPhone'=> $params['customerPhone'], // '+44 (0) 123 45 67 890'
-            'customerAddress'=> $params['customerAddress'],
-            'customerPostCode'=> $params['customerPostCode'],
-            'orderRef'=> $params['orderRef'],
-            'transactionUnique'=> (isset($params['transactionUnique']) ? $params['transactionUnique'] : uniqid()),
-            'threeDSMD'=> (isset($_REQUEST['MD']) ? $_REQUEST['MD'] : null),
-            'threeDSPaRes'=> (isset($_REQUEST['PaRes']) ? $_REQUEST['PaRes'] : null),
-            'threeDSPaReq'=> (isset($_REQUEST['PaReq']) ? $_REQUEST['PaReq'] : null)
-        );
-
-        $res = $CSGW->directRequest($req);
-        
-        if($res)
-        {
-            if($res['responseCode'] == 0)
-            {
-                return response()->json(['status' => 1, 'message' => 'Success'])->setStatusCode(200);
-            }
-            else if ($res['responseCode'] == 65802) {
-
-                $paymentRequest = new paymentRequest;
-                $paymentRequest->store_id = $params['store_id'];
-                $paymentRequest->merchantID = $getStoreDetails->merchantID;
-                $paymentRequest->merchantSecret = $getStoreDetails->merchantSecret;
-                $paymentRequest->MD = $res['threeDSMD'];
-                $paymentRequest->PaReq = $res['threeDSPaReq'];
-                if($paymentRequest->save())
-                {
-                    $pageUrl =  url('api/3Ds-payment-request');
-                    $formHTML = "<!DOCTYPE html>
-                                    <html>
-                                    <head>
-                                        <meta charset='utf-8'>
-                                        <meta name='viewport' content='width=device-width, initial-scale=1'>
-                                        <title>Payment</title>
-                                    </head>
-                                    <body>
-                                        <form style=\"display: flex; justify-content: center; align-items: center; height: 90vh;\" action=\"" . htmlentities($res['threeDSACSURL']) . "\" method=\"post\">
-                                            <input type=\"hidden\" name=\"MD\" value=\"" . htmlentities($res['threeDSMD']) . "\">
-                                            <input type=\"hidden\" name=\"PaReq\" value=\"" . htmlentities($res['threeDSPaReq']) . "\">
-                                            <input type=\"hidden\" name=\"TermUrl\" value=\"" . htmlentities($pageUrl) . "\">
-                                            <input type=\"submit\" value=\"Proceed To 3D Secure Authentication\" style=\"margin: 0 auto; display:flex; justify-content:center; background-color: #de6b12; color: white; border: none; border-radius: 7px; padding: 10px 15px; font-size: 16px;\">
-                                        </form>
-                                    </body>
-                                </html>";
-
-                    return response()->json(['status' => 2, 'message' => 'HTML Part', 'formHTML' => $formHTML, 'formAction' => $res['threeDSACSURL'], 'MD' => $res['threeDSMD'], 'PaReq' => $res['threeDSPaReq'], 'TermUrl' => $pageUrl])->setStatusCode(200);
-                }
-                else
-                {
-                    return response()->json(['status' => 0, 'message' => 'Request Failed'])->setStatusCode(200);
-                }
-            }
-            else
-            {
-                return response()->json(['status' => 0, 'message' => $res['responseMessage']])->setStatusCode(200);
-            }
-        }
-        else
-        {
-            return response()->json(['status' => 0, 'message' => 'Something went wrong.'])->setStatusCode(200);
-        }
+    $validator = Validator::make($request->all(), $rules);
+    if ($validator->fails()) {
+        return response()->json(['status' => 0, 'message' => $validator->errors()->first()])->setStatusCode(200);
     }
+
+    $params = $request->post();
+
+    $getStoreDetails = User::where('id', $params['store_id'])->where('status', 1)->first();
+    if(empty($getStoreDetails)) {
+        return response()->json(['status' => 0, 'message' => 'Store is unavailable.'])->setStatusCode(200);
+    }
+
+    // Create Order record (replace 'Order' with your order model)
+    $order = new Order();
+    $order->store_id = $params['store_id'];
+    $order->amount = $params['amount'];
+    $order->customerName = $params['customerName'];
+    $order->customerEmail = $params['customerEmail'];
+    $order->customerAddress = $params['customerAddress'];
+    $order->orderRef = $params['orderRef'];
+    $order->status = 'pending'; // or 'paid' if you want to auto-confirm
+    $order->save();
+
+    return response()->json([
+        'status' => 1,
+        'message' => 'Order placed successfully',
+        'order' => $order
+    ])->setStatusCode(200);
+}
+
 
     public function ThreeDsPaymentRequest(Request $request)
     {
