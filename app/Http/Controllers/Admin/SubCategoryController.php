@@ -66,7 +66,7 @@ class SubCategoryController extends Controller
             $destinationPath = public_path('/sub_categories');
             $image->move($destinationPath, $name);
             
-            $subCategory->featured_image = 'public/sub_categories/' . $name;
+            $subCategory->featured_image = 'sub_categories/' . $name;
         }
 
         if($subCategory->save())
@@ -108,6 +108,9 @@ class SubCategoryController extends Controller
             'category_id'   => 'required',
         );
 
+       \Log::info('Validation Rules:', $rules);
+
+
         // do the validation ----------------------------------
         // validate against the inputs from our form
         $validator = Validator::make($request->all(), $rules);
@@ -117,6 +120,7 @@ class SubCategoryController extends Controller
 
             // get the error messages from the validator
             // $messages = $validator->messages();
+            
 
             Session::flash('message', $validator->errors()->first()); 
             Session::flash('class', 'danger');
@@ -133,6 +137,11 @@ class SubCategoryController extends Controller
             Session::flash('class', 'danger');  
             return redirect()->route('sub-categories');
         }
+
+        \Log::info('Validation Errors:', [
+            'db_category_id' => $subCategory->category_id,
+            'request_category_id' => $params['category_id'],
+        ]);
 
         if($subCategory->category_id != $params['category_id'])
         {
@@ -168,7 +177,7 @@ class SubCategoryController extends Controller
             $destinationPath = public_path('/sub_categories');
             $image->move($destinationPath, $name);
             
-            $subCategory->featured_image = 'public/sub_categories/' . $name;
+            $subCategory->featured_image = 'sub_categories/' . $name;
         }
 
         if($subCategory->save())

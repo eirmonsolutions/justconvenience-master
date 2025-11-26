@@ -84,7 +84,7 @@ class ProfileController extends Controller
             $destinationPath = public_path('/stores');
             $image->move($destinationPath, $name);
             
-            $store->image = 'public/stores/' . $name;
+            $store->image = 'stores/' . $name;
         }
 
         if(isset($params['latitudes']) && !empty($params['latitudes']))

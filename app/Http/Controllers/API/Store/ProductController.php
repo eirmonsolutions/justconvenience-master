@@ -430,7 +430,7 @@ public function save(Request $request)
             $destinationPath = public_path('/products');
             $image->move($destinationPath, $name);
             
-            $product->featured_image = 'public/products/' . $name;
+            $product->featured_image = 'products/' . $name;
         }
 
         if(isset($params['is_offer']))

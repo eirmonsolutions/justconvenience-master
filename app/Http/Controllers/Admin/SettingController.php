@@ -62,7 +62,7 @@ class SettingController extends Controller
 	        $destinationPath = public_path('/img/upload_files');
 	        $image->move($destinationPath, $name);
 	        
-	        $params['logo']['primary_logo'] = 'public/img/upload_files/' . $name;
+	        $params['logo']['primary_logo'] = 'img/upload_files/' . $name;
 	    }
 	    else
 	    {
@@ -82,7 +82,7 @@ class SettingController extends Controller
 	        $destinationPath = public_path('/img/upload_files');
 	        $image->move($destinationPath, $name);
 	        
-	        $params['logo']['secondary_logo'] = 'public/img/upload_files/' . $name;
+	        $params['logo']['secondary_logo'] = 'img/upload_files/' . $name;
 	    }
 	    else
 	    {

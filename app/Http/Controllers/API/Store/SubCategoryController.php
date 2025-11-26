@@ -117,7 +117,7 @@ class SubCategoryController extends Controller
             $moved = $image->move($path, $filename);
 
             if ($moved) {
-                $subCategory->featured_image = 'public/sub_categories/' . $filename;
+                $subCategory->featured_image = 'sub_categories/' . $filename;
                 Log::info('Image saved successfully', ['path' => $subCategory->featured_image]);
             } else {
                 Log::error('Failed to move uploaded file');
@@ -232,7 +232,7 @@ class SubCategoryController extends Controller
             $destinationPath = public_path('/sub_categories');
             $image->move($destinationPath, $name);
             
-            $subCategory->featured_image = 'public/sub_categories/' . $name;
+            $subCategory->featured_image = 'sub_categories/' . $name;
         }
 
         if(isset($params['is_offer']))

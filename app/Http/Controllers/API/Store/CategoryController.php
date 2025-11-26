@@ -61,7 +61,7 @@ class CategoryController extends Controller
             $destinationPath = public_path('/categories');
             $image->move($destinationPath, $name);
             
-            $category->featured_image = 'public/categories/' . $name;
+            $category->featured_image = 'categories/' . $name;
         }
 
         if($category->save())
@@ -130,7 +130,7 @@ class CategoryController extends Controller
             $destinationPath = public_path('/categories');
             $image->move($destinationPath, $name);
             
-            $category->featured_image = 'public/categories/' . $name;
+            $category->featured_image = 'categories/' . $name;
         }
 
         if($category->save())

@@ -123,7 +123,7 @@ class ProductController extends Controller
             $destinationPath = public_path('/products');
             $image->move($destinationPath, $name);
             
-            $product->featured_image = 'public/products/' . $name;
+            $product->featured_image = 'products/' . $name;
         }
 
         if($product->save())
@@ -289,7 +289,7 @@ class ProductController extends Controller
             $destinationPath = public_path('/products');
             $image->move($destinationPath, $name);
             
-            $product->featured_image = 'public/products/' . $name;
+            $product->featured_image = 'products/' . $name;
         }
 
         if($product->save())

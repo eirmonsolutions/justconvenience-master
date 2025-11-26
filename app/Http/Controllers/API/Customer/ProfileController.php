@@ -56,7 +56,7 @@ class ProfileController extends Controller
             $destinationPath = public_path('/customers');
             $image->move($destinationPath, $name);
             
-            $customer->image = 'public/customers/' . $name;
+            $customer->image = 'customers/' . $name;
         }
 
         if($customer->save())

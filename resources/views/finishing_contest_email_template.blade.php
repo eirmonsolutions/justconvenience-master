@@ -88,9 +88,9 @@
 				            <tbody>
 						        <!-- start copy -->
 						        <tr>
-						        	<td background="{{ url('public/assets/images/contest-bg.jpg') }}" align="center" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
+						        	<td background="{{ url('assets/images/contest-bg.jpg') }}" align="center" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
 						        		<p style="padding-top: 20px; padding-bottom: 10px;"><a href="javascript:void(0);" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
-						        			<img src="{{ url('public/assets/images/white-logo.png') }}" alt="Logo" border="0" width="148" style="display: block; width: 148px; max-width: 148px; min-width: 148px;">
+						        			<img src="{{ url('assets/images/white-logo.png') }}" alt="Logo" border="0" width="148" style="display: block; width: 148px; max-width: 148px; min-width: 148px;">
 						        		</a></p>
 						        		<h1 style="margin: 0 0 2px;font-size: 32px;font-weight: 400;line-height: 48px;color: #ffffff;">Weekly Contest</h1>
 						        		<p style="margin: 0;color: #e6ee74;"><b>{{ date('d M Y', strtotime($contest->start_date)) }} - {{ date('d M Y', strtotime($contest->end_date)) }}</b></p>

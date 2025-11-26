@@ -118,7 +118,7 @@ class StoreController extends Controller
             $destinationPath = public_path('/stores');
             $image->move($destinationPath, $name);
             
-            $store->image = 'public/stores/' . $name;
+            $store->image = 'stores/' . $name;
         }
 
         $store->store_opening_status = $params['store_opening_status'];
@@ -242,7 +242,7 @@ class StoreController extends Controller
                 $destinationPath = public_path('/stores');
                 $image->move($destinationPath, $name);
                 
-                $store->image = 'public/stores/' . $name;
+                $store->image = 'stores/' . $name;
             }
         }
 

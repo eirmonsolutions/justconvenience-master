@@ -134,7 +134,7 @@ class ContestController extends Controller
             $destinationPath = public_path('/contests');
             $image->move($destinationPath, $name);
             
-            $contest->featured_image = 'public/contests/' . $name;
+            $contest->featured_image = 'contests/' . $name;
         }
 
         if($contest->save())
@@ -259,7 +259,7 @@ class ContestController extends Controller
             $destinationPath = public_path('/contests');
             $image->move($destinationPath, $name);
             
-            $contest->featured_image = 'public/contests/' . $name;
+            $contest->featured_image = 'contests/' . $name;
         }
 
         if($contest->save())
