@@ -51,7 +51,7 @@ class OrderController extends Controller
             $pdf_doc = PDF::loadView('invoices.order_invoice', ['order_details' => $getOrderDetails])->save(public_path($fileName));
             // $pdf_doc = PDF::loadView('invoices.order_invoice', ['order_details' => $getOrderDetails])->setPaper('a5', 'landscape')->save(public_path($fileName));
 
-            $pdfURL = url('/public') . '/' . $fileName;
+            $pdfURL = url('/') . '/' . $fileName;
             return response()->json(['status' => 1, 'message' => 'Order Details.', 'data' => $getOrderDetails, 'order_invoice_url' => $pdfURL, 'html' => $html, 'webURL' => route('order-invoice', ['id' => $getOrderDetails->id])])->setStatusCode(200);
         }
         else

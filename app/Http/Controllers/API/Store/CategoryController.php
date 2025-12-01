@@ -131,7 +131,7 @@ class CategoryController extends Controller
             $image->move($destinationPath, $name);
             
             $category->featured_image = 'categories/' . $name;
-        }
+        } 
 
         if($category->save())
         {

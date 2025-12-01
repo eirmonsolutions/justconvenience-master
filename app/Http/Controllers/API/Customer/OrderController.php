@@ -176,33 +176,42 @@ class OrderController extends Controller
         }
     }
 
-    public function myOrders(Request $request)
-    {
-        $user = $request->checkTokenExistance->user;
-        $params = $request->all();
+   public function myOrders(Request $request)
+{
+    $user = $request->checkTokenExistance->user;
+    \Log::info("Logged-in user ID: " . $user->id);
 
-        $getOrders = Order::with('orderDetails.product')->where(function($q) use ($user) {
-                                        
-                                        $q->where(['user_id' => $user->id]);
-                                        
-                                    });
+    $params = $request->all();
+    \Log::info("Params:", $params);
 
-        if (isset($params['date']) && !empty($params['date']))
-        {
-            $date = date('Y-m-d', strtotime($params['date']));
+    $getOrders = Order::with('orderDetails.product')
+        ->where(function($q) use ($user) {
+            \Log::info("Filtering by user_id", ['user_id' => $user->id]);
+            $q->where('user_id', $user->id);
+        });
 
-            $getOrders->whereDate('created_at', $date);
-        }
-        
-        if (isset($params['status']) && !empty($params['status']))
-        {
-            $getOrders->where('status', $params['status']);
-        }
-
-        $getOrders = $getOrders->orderBy('id', 'desc')->paginate();
-
-        return response()->json(['status' => 1, 'message' => 'My Orders', 'data' => $getOrders])->setStatusCode(200);
+    if (!empty($params['date'])) {
+        $date = date('Y-m-d', strtotime($params['date']));
+        \Log::info("Filtering by date:", ['date' => $date]);
+        $getOrders->whereDate('created_at', $date);
     }
+
+    if (!empty($params['status'])) {
+        \Log::info("Filtering by status:", ['status' => $params['status']]);
+        $getOrders->where('status', $params['status']);
+    }
+
+    $orders = $getOrders->orderBy('id', 'desc')->paginate();
+
+    \Log::info("Final Orders Count:", ['count' => $orders->total()]);
+
+    return response()->json([
+        'status' => 1,
+        'message' => 'My Orders',
+        'data' => $orders
+    ]);
+}
+
 
     public function orderDetails(Request $request)
     {
