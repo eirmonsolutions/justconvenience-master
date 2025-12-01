@@ -17,51 +17,52 @@ use App\orderDetail;
 class OrderController extends Controller
 {
     public function myOrders(Request $request)
-    {
-        $user = $request->checkTokenExistance->user;
-        $params = $request->all();
+{
+    $user = $request->checkTokenExistance->user;
+    $params = $request->all();
 
-        $getOrders = Order::with('orderDetails.product')->where(function($q) use ($user) {
-                                        
-                                        $q->where(['store_id' => $user->id]);
-                                        
-                                    });
+    // Log user & params
+    \Log::info("myOrders() called", [
+        'logged_in_user_id' => $user->id,
+        'params'            => $params
+    ]);
 
-        /*if (isset($params['start_date']) && !empty($params['start_date']) && isset($params['end_date']) && !empty($params['end_date']))
-        {
-            $start_date = date('Y-m-d', strtotime($params['start_date']));
-            $end_date = date('Y-m-d', strtotime($params['end_date']));
+    // Base Query
+    $getOrders = Order::with('orderDetails.product')
+        ->where(function($q) use ($user) {
+            \Log::info("Filtering by store_id", ['store_id' => $user->id]);
+            $q->where('store_id', $user->id);
+        });
 
-            $getOrders->whereDate('created_at' , '>=', $start_date);
-            $getOrders->whereDate('created_at' , '<=', $end_date);
-        }
-        else if(isset($params['start_date']) && !empty($params['start_date']))
-        {
-            $start_date = date('Y-m-d', strtotime($params['start_date']));
-            $getOrders->whereDate('created_at' , '>=', $start_date);
-
-        }
-        else if(isset($params['end_date']) && !empty($params['end_date']))
-        {
-            $end_date = date('Y-m-d', strtotime($params['end_date']));
-            $getOrders->whereDate('created_at' , '<=', $end_date);
-        }*/
-
-        if (isset($params['date']) && !empty($params['date']))
-        {
-            $date = date('Y-m-d', strtotime($params['date']));
-
-            $getOrders->whereDate('created_at', $date);
-        }
-
-        if (isset($params['status']) && !empty($params['status']))
-        {
-            $getOrders->where('status', $params['status']);
-        }
-
-        $getOrders = $getOrders->orderBy('id', 'desc')->paginate();
-        return response()->json(['status' => 1, 'message' => 'My Orders', 'data' => $getOrders])->setStatusCode(200);
+    // Date Filter
+    if (!empty($params['date'])) {
+        $date = date('Y-m-d', strtotime($params['date']));
+        \Log::info("Filtering by single date", ['date' => $date]);
+        $getOrders->whereDate('created_at', $date);
     }
+
+    // Status Filter
+    if (!empty($params['status'])) {
+        \Log::info("Filtering by status", ['status' => $params['status']]);
+        $getOrders->where('status', $params['status']);
+    }
+
+    // Order + Paginate
+    $finalOrders = $getOrders->orderBy('id', 'desc')->paginate();
+
+    // Log final count
+    \Log::info("Final Orders Retrieved", [
+        'total' => $finalOrders->total(),
+        'store_id' => $user->id
+    ]);
+
+    return response()->json([
+        'status'  => 1,
+        'message' => 'My Orders',
+        'data'    => $finalOrders
+    ], 200);
+}
+
 
     public function orderDetails(Request $request)
     {
