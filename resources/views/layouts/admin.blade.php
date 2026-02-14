@@ -183,6 +183,13 @@
                                 </a>
                             </li>
 
+                              <li class="sidebar-item {{ (\Request::route()->getName() == 'radius.index' || \Request::route()->getName() == 'radius.index') ? 'selected' : '' }}">
+                                <a class="sidebar-link sidebar-link" href="{{ route('radius.index') }}" aria-expanded="false">
+                                    <i data-feather="users" class="feather-icon"></i>
+                                    <span class="hide-menu">Set Store Radius</span>
+                                </a>
+                            </li>
+
                             <li class="sidebar-item {{ (\Request::route()->getName() == 'orders' || \Request::route()->getName() == 'order-details') ? 'selected' : '' }}">
                                 <a class="sidebar-link sidebar-link" href="{{ route('orders') }}" aria-expanded="false">
                                     <i data-feather="users" class="feather-icon"></i>

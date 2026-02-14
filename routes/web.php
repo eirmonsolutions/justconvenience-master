@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\RadiusSettingController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -178,7 +178,10 @@ Route::group(['middleware' => ['CommonUserType']], function ()
 	});
 
 	Route::get('dashboard', 'IndexController@dashboard')->name('dashboard');
-
+    Route::get('/admin/radius-settings', [RadiusSettingController::class, 'index'])
+    ->name('radius.index');
+	Route::post('/admin/radius/{id}', [RadiusSettingController::class, 'update'])
+    ->name('radius.update');
 	// Stores
 	Route::get('store', 'Admin\StoreController@index')->name('stores');
 	Route::get('edit-store/{store_id}', 'Admin\StoreController@editStore')->name('edit-store');
