@@ -37,6 +37,7 @@ class OrderController extends Controller
         $rules = [
             'store_id'   => 'required',
             'order_type'   => 'required',
+            'delivery_time_slot' => 'nullable|in:morning,afternoon,evening',
             // 'delivery_instructions'   => 'required',
             'payment_method'   => 'required',
             'total_quantity'   => 'required',
@@ -54,7 +55,16 @@ class OrderController extends Controller
             'sub_total'   => 'required',
         ];
 
-        $validator = Validator::make($request->all(), $rules);
+        if ((int) $request->input('order_type') === 1) {
+            $rules['delivery_time_slot'] = 'required|in:morning,afternoon,evening';
+        }
+
+        $messages = [
+            'delivery_time_slot.required' => 'Delivery time slot is required for delivery orders.',
+            'delivery_time_slot.in' => 'The selected delivery time slot is invalid.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
         
         if ($validator->fails()) {
             return response()->json(['status' => 0, 'message' => $validator->errors()->first()])->setStatusCode(200);
@@ -79,7 +89,8 @@ class OrderController extends Controller
 
         $order->user_id = $user->id;
         $order->order_type = $params['order_type'];
-        $order->delivery_instructions = $params['delivery_instructions'];
+        $order->delivery_time_slot = $request->input('delivery_time_slot');
+        $order->delivery_instructions = $request->input('delivery_instructions');
         $order->payment_method = $params['payment_method'];
         $order->total_quantity = $params['total_quantity'];
 
@@ -168,7 +179,12 @@ class OrderController extends Controller
             {
                 #code...
             }
-            return response()->json(['status' => 1, 'message' => 'Your order has created successfully.'])->setStatusCode(200);
+            $createdOrder = Order::with('orderDetails.product')->find($order->id);
+            return response()->json([
+                'status' => 1,
+                'message' => 'Your order has created successfully.',
+                'data' => $createdOrder
+            ])->setStatusCode(200);
         }
         else
         {
