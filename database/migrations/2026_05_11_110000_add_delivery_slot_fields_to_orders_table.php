@@ -18,8 +18,12 @@ class AddDeliverySlotFieldsToOrdersTable extends Migration
                 $table->string('delivery_time_slot')->nullable()->after('order_type');
             }
 
+            if (!Schema::hasColumn('orders', 'delivery_date')) {
+                $table->date('delivery_date')->nullable()->after('delivery_time_slot');
+            }
+
             if (!Schema::hasColumn('orders', 'delivery_instructions')) {
-                $table->text('delivery_instructions')->nullable()->after('delivery_time_slot');
+                $table->text('delivery_instructions')->nullable()->after('delivery_date');
             }
         });
     }
@@ -34,6 +38,10 @@ class AddDeliverySlotFieldsToOrdersTable extends Migration
         Schema::table('orders', function (Blueprint $table) {
             if (Schema::hasColumn('orders', 'delivery_time_slot')) {
                 $table->dropColumn('delivery_time_slot');
+            }
+
+            if (Schema::hasColumn('orders', 'delivery_date')) {
+                $table->dropColumn('delivery_date');
             }
         });
     }

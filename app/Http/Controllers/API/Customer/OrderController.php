@@ -15,6 +15,7 @@ use GlobalPayments\Api\Services\HostedService;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Validator;
 use Auth;
 use Session;
@@ -33,11 +34,13 @@ class OrderController extends Controller
     public function createOrder(Request $request)
     {
         $user = $request->checkTokenExistance->user;
+        $maxDeliveryDate = Carbon::today()->addDays(7)->format('Y-m-d');
         // create the validation rules ------------------------
         $rules = [
             'store_id'   => 'required',
             'order_type'   => 'required',
             'delivery_time_slot' => 'nullable|in:morning,afternoon,evening',
+            'delivery_date' => 'nullable|date_format:Y-m-d|after_or_equal:today|before_or_equal:' . $maxDeliveryDate,
             // 'delivery_instructions'   => 'required',
             'payment_method'   => 'required',
             'total_quantity'   => 'required',
@@ -57,11 +60,16 @@ class OrderController extends Controller
 
         if ((int) $request->input('order_type') === 1) {
             $rules['delivery_time_slot'] = 'required|in:morning,afternoon,evening';
+            $rules['delivery_date'] = 'required|date_format:Y-m-d|after_or_equal:today|before_or_equal:' . $maxDeliveryDate;
         }
 
         $messages = [
             'delivery_time_slot.required' => 'Delivery time slot is required for delivery orders.',
             'delivery_time_slot.in' => 'The selected delivery time slot is invalid.',
+            'delivery_date.required' => 'Delivery date is required for delivery orders.',
+            'delivery_date.date_format' => 'Delivery date format must be YYYY-MM-DD.',
+            'delivery_date.after_or_equal' => 'Delivery date must be between today and next 7 days.',
+            'delivery_date.before_or_equal' => 'Delivery date must be between today and next 7 days.',
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -90,6 +98,7 @@ class OrderController extends Controller
         $order->user_id = $user->id;
         $order->order_type = $params['order_type'];
         $order->delivery_time_slot = $request->input('delivery_time_slot');
+        $order->delivery_date = $request->input('delivery_date');
         $order->delivery_instructions = $request->input('delivery_instructions');
         $order->payment_method = $params['payment_method'];
         $order->total_quantity = $params['total_quantity'];
