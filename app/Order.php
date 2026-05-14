@@ -12,6 +12,13 @@ class Order extends Model
     use SoftDeletes;
 
     /**
+     * @var array
+     */
+    protected $fillable = [
+        'additional_information',
+    ];
+
+    /**
      * Get the Order Details
      */
     public function orderDetails()

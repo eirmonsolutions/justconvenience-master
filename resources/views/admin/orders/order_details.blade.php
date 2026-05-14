@@ -97,6 +97,12 @@
                                     {{ $order->order_note }}
                                 </div>
                             @endif
+                            @if($order->additional_information)
+                                <div class="col-6 customer-row">
+                                    <label>Additional information: </label>
+                                    {{ $order->additional_information }}
+                                </div>
+                            @endif
                         </div>
                         <div class="clearfix"></div>
                         <hr>

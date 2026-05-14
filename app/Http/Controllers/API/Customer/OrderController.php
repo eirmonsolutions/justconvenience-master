@@ -31,6 +31,14 @@ use App\paymentRequest;
 
 class OrderController extends Controller
 {
+    /**
+     * Customer create-order (multipart FormData).
+     *
+     * Optional string fields:
+     * - additional_information: customer free-text (max 1500), preferred key
+     * - customer_note: same semantics as additional_information if the former is empty
+     * - order_note: full order note (unchanged); may include delivery summary + customer text
+     */
     public function createOrder(Request $request)
     {
         $user = $request->checkTokenExistance->user;
@@ -41,6 +49,8 @@ class OrderController extends Controller
             'order_type'   => 'required',
             'delivery_time_slot' => 'nullable|in:morning,afternoon,evening',
             'delivery_date' => 'nullable|date_format:Y-m-d|after_or_equal:today|before_or_equal:' . $maxDeliveryDate,
+            'additional_information' => 'nullable|string|max:1500',
+            'customer_note' => 'nullable|string|max:1500',
             // 'delivery_instructions'   => 'required',
             'payment_method'   => 'required',
             'total_quantity'   => 'required',
@@ -128,6 +138,17 @@ class OrderController extends Controller
         $order->shipping_zipcode = $params['shipping_zipcode'];
         $order->shipping_country = $params['shipping_country'];
         $order->order_note = $params['order_note'];
+
+        $additionalRaw = $request->input('additional_information');
+        if ($additionalRaw === null || $additionalRaw === '') {
+            $additionalRaw = $request->input('customer_note');
+        }
+        if (is_string($additionalRaw)) {
+            $additionalRaw = trim(strip_tags($additionalRaw));
+        } else {
+            $additionalRaw = null;
+        }
+        $order->additional_information = ($additionalRaw !== '') ? $additionalRaw : null;
 
         $order->delivery_charges = $params['delivery_charges'];        
         $order->service_charges = $params['service_charges'];
