@@ -223,7 +223,7 @@ Our maximum liability is the value of your order.
 				</h1>
 				
 				<p>
-					Our privacy policy is available <a href="privacy-statement-just-convenience.html">Here</a>
+					Our privacy policy is available <a href="privacy-statement-just-convenience">Here</a>
 				</p>
 			</div>
 		</div>
