@@ -27,7 +27,7 @@
             <h1>Privacy Policy for Just Convenience Applications</h1>
 
             <p>
-                <strong>Effective Date:</strong> [Add Date]
+               <p><strong>Effective Date:</strong> 02 June 2026</p>
             </p>
 
             <p>
@@ -258,7 +258,7 @@
 
     </div>
 </div>
-```
+ 
 
 </div>
 
@@ -279,7 +279,7 @@
                             </p>
                         </li>
 
-```
+
                     <li>
                         <div class="icon2">
                             <img src="images/icon6.png" alt="">
