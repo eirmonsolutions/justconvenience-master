@@ -22,12 +22,12 @@ use App\Http\Controllers\RadiusSettingController;
 // Admin/Super Admin Auth
 Route::any('signin', 'IndexController@signin')->name('signin');
 Route::get('signout', 'IndexController@signOut')->name('signout');
-// privacy-statement-just-convenience
+// privacy-policy
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('/', 'IndexController@index')->name('index');
 
-Route::get('/privacy-statement-just-convenience', 'IndexController@privacy')->name('privacy');
+Route::get('/privacy-policy', 'IndexController@privacy')->name('privacy');
 Route::get('/terms-and-conditions', 'IndexController@terms')->name('terms');
 
 

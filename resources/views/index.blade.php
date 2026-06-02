@@ -180,7 +180,7 @@
 				</div>
 				<div class="link-Foot">
 					<a href="/terms-and-conditions">Terms and Conditions</a>
-					<a href="/privacy-statement-just-convenience">Privacy Policy</a>
+					<a href="/privacy-policy">Privacy Policy</a>
 				</div>
 			</div>
 		</div>

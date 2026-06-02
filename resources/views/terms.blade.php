@@ -223,7 +223,7 @@ Our maximum liability is the value of your order.
 				</h1>
 				
 				<p>
-					Our privacy policy is available <a href="privacy-statement-just-convenience">Here</a>
+					Our privacy policy is available <a href="privacy-policy">Here</a>
 				</p>
 			</div>
 		</div>
@@ -260,7 +260,7 @@ Our maximum liability is the value of your order.
 				</div>
 				<div class="link-Foot">
 					<a href="/terms-and-conditions">Terms and Conditions</a>
-					<a href="/privacy-statement-just-convenience">Privacy Policy</a>
+					<a href="/privacy-policy">Privacy Policy</a>
 				</div>
 			</div>
 		</div>
