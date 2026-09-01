@@ -64,6 +64,7 @@ Route::group(['prefix' => '', 'middleware' => 'checkAppAuth'], function()
             Route::post('store-profile-update', 'API\Store\ProfileController@profileupdate');
             Route::post('store-opening-status-update', 'API\Store\ProfileController@storeOpeningStatusupdate');
             Route::post('store-change-password', 'API\Store\ProfileController@changePassword');
+            Route::post('store-delete-account', 'API\Store\ProfileController@deleteAccount');
         // User Profile Ends
 
         // Common Categories
@@ -116,6 +117,7 @@ Route::group(['prefix' => '', 'middleware' => 'checkAppAuth'], function()
             Route::get('customer-profile', 'API\Customer\ProfileController@profile');
             Route::post('customer-profile-update', 'API\Customer\ProfileController@profileupdate');
             Route::post('customer-change-password', 'API\Customer\ProfileController@changePassword');
+            Route::post('customer-delete-account', 'API\Customer\ProfileController@deleteAccount');
         // User Profile Ends
 
         // Order Part Start

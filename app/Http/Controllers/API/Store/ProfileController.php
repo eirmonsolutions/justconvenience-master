@@ -10,6 +10,7 @@ use Validator;
 
 use App\User;
 use App\Order;
+use App\OauthClient;
 
 use Illuminate\Support\Str;
 
@@ -227,5 +228,49 @@ class ProfileController extends Controller
         $todayEarning = $todayTotalAmount - $todayTotalServiceCharges;
 
         return response()->json(['status' => 1, 'message' => 'Earning Amount.', 'todayEarning' => $todayEarning])->setStatusCode(200);
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        if (!\Request::isMethod('post')) {
+            return response()->json(['status' => 0, 'message' => 'Method not allowed.'])->setStatusCode(200);
+        }
+
+        $store = $request->checkTokenExistance->user;
+
+        if ($store->user_role != 3) {
+            return response()->json(['status' => 0, 'message' => 'Unauthorized.'])->setStatusCode(200);
+        }
+
+        $rules = [
+            'password' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 0, 'message' => $validator->errors()->first()])->setStatusCode(200);
+        }
+
+        if (!\Hash::check($request->password, $store->password)) {
+            return response()->json(['status' => 0, 'message' => 'Password is wrong.'])->setStatusCode(200);
+        }
+
+        $activeOrders = Order::where('store_id', $store->id)
+            ->whereIn('status', [ORDER_PENDING_STATUS, ORDER_READY_STATUS, ORDER_ONDELIVERY_STATUS])
+            ->exists();
+
+        if ($activeOrders) {
+            return response()->json(['status' => 0, 'message' => 'You cannot delete your account while you have active orders. Please complete or cancel them first.'])->setStatusCode(200);
+        }
+
+        OauthClient::where('user_id', $store->id)->delete();
+
+        $store->status = 0;
+        if ($store->save() && $store->delete()) {
+            return response()->json(['status' => 1, 'message' => 'Your account has been deleted successfully.'])->setStatusCode(200);
+        }
+
+        return response()->json(['status' => 0, 'message' => 'Something went wrong.'])->setStatusCode(200);
     }
 }
